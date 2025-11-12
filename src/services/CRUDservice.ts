@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const db = require("../models/index");
 const saltRounds = 10; 
-let hashUserPassword = async (password) => {
+export const hashUserPassword = async (password: string) => {
     try {
         let hashPassword = await bcrypt.hash(password, saltRounds);
         return hashPassword;
@@ -11,7 +11,7 @@ let hashUserPassword = async (password) => {
     }
 }
 
-let createNewUser = async (data) => {
+export const createNewUser = async (data: any) => {
     try {
         let hashPasswordFromBcrypt = await hashUserPassword(data.password);
         
@@ -36,7 +36,7 @@ let createNewUser = async (data) => {
     }
 }
 
-let getAllUser = async () => {
+export const getAllUser = async () => {
     try {
         let users = await db.User.findAll({
             raw: true,
@@ -51,7 +51,7 @@ let getAllUser = async () => {
     }
 }
 
-let getUserInfoById = async (userId) => {
+export const getUserInfoById = async (userId: number) => {
     try {
         let user = await db.User.findOne({
             where: { id: userId },
@@ -67,7 +67,7 @@ let getUserInfoById = async (userId) => {
     }
 }
 
-let deleteUserById = async (userId) => {
+export const deleteUserById = async (userId: number) => {
     try {
         let user = await db.User.findOne({
             where: { id: userId }
@@ -85,7 +85,7 @@ let deleteUserById = async (userId) => {
     }
 }
 
-let updateUser = async (data) => {
+export const updateUser = async (data: any) => {
     try {
         let user = await db.User.findOne({
             where: { id: data.id }
@@ -108,12 +108,4 @@ let updateUser = async (data) => {
     } catch (e) {
         throw e;
     }
-}
-
-module.exports = {
-    createNewUser: createNewUser,
-    getAllUser: getAllUser,
-    getUserInfoById: getUserInfoById,
-    updateUser: updateUser,
-    deleteUserById: deleteUserById
 }
