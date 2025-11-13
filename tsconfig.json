@@ -12,6 +12,6 @@
     "rootDir": "./src",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/config", "migrations"],
   "exclude": ["node_modules", "dist"]
 }

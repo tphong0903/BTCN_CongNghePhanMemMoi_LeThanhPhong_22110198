@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const db = require("../models/index");
+import db from '../models/index';
 const saltRounds = 10; 
 export const hashUserPassword = async (password: string) => {
     try {

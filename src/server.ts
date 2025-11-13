@@ -1,22 +1,37 @@
-import express from "express";
-import bodyParser from "body-parser";
+import express, { Express } from "express";
+import dotenv from "dotenv";
+import cors from 'cors';
 import viewEngine from "./config/viewEngine";
 import initWebRoutes from './route/web';
+import apiRoutes from './route/api'; 
 import connectDB from "./config/configdb";
-import dotenv from "dotenv";
 
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 viewEngine(app);
 initWebRoutes(app);
-connectDB();
+app.use("/v1/api", apiRoutes);
 
-const port = parseInt(process.env.PORT ?? "6969", 10);
+const port = parseInt(process.env.PORT ?? "8888", 10);
 
-app.listen(port, () => {
-  console.log("Backend Nodejs is running on port:", port);
-});
+const startServer = async () => {
+    try {
+        await connectDB();
+        
+        app.listen(port, () => {
+            console.log(`✅ Backend Nodejs is running on port: ${port}`);
+        });
+
+    } catch (error) {
+        console.error("❌ Error connecting to DB or starting server:", error);
+        process.exit(1); 
+    }
+};
+
+startServer();

@@ -1,65 +1,66 @@
-import mongoose, { Document, Model } from "mongoose";
+import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
 
-export interface IUser {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
+interface UserAttributes {
+  id: number;
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
   address?: string;
   phoneNumber?: string;
   gender?: boolean;
   image?: string;
   roleId?: string;
   positionId?: string;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export interface IUserDocument extends IUser, Document {}
+type UserCreationAttributes = Optional<UserAttributes, 'id'>;
 
-const userSchema = new mongoose.Schema<IUserDocument>(
-  {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
-    },
-    address: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-    },
-    gender: {
-      type: Boolean,
-    },
-    image: {
-      type: String,
-    },
-    roleId: {
-      type: String,
-    },
-    positionId: {
-      type: String,
-    },
-  },
-  {
-    timestamps: true,
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  public id!: number;
+  public email?: string;
+  public password?: string;
+  public firstName?: string;
+  public lastName?: string;
+  public address?: string;
+  public phoneNumber?: string;
+  public gender?: boolean;
+  public image?: string;
+  public roleId?: string;
+  public positionId?: string;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+
+  public static associate(models: any) {
   }
-);
+}
 
-const User: Model<IUserDocument> =
-  (mongoose.models.User as Model<IUserDocument>) ||
-  mongoose.model<IUserDocument>("User", userSchema);
+export default (sequelize: Sequelize): typeof User => {
+  User.init({
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    email: DataTypes.STRING,
+    password: DataTypes.STRING,
+    firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    address: DataTypes.STRING,
+    phoneNumber: DataTypes.STRING,
+    gender: DataTypes.BOOLEAN,
+    image: DataTypes.STRING,
+    roleId: DataTypes.STRING,
+    positionId: DataTypes.STRING
+  }, {
+    sequelize,
+    modelName: 'User',
+    tableName: 'users'
+  });
 
-export default User;
+  return User;
+};

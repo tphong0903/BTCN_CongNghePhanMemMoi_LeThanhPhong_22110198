@@ -7,7 +7,7 @@ export const getHomePage = async (req: Request, res: Response): Promise<void> =>
     console.log("..................");
     console.log(data);
     console.log("..................");
-    res.render("homepage.ejs", {
+    res.render("index.ejs", {
       data: JSON.stringify(data),
     });
   } catch (e) {

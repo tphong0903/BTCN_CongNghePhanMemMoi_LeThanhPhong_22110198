@@ -1,23 +1,39 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-dotenv.config();
+import { Sequelize } from "sequelize";
+import UserModel from "../models/user";
 
-const connectDB = async (): Promise<void> => {
-    try {
-        const dbUrl = process.env.DB_URL as string;
+// Create connection without specifying database first
+const sequelizeInit = new Sequelize("mysql", "root", "Phongga088@", {
+  host: "localhost",
+  dialect: "mysql",
+  logging: false,
+});
 
-        if (!dbUrl) {
-            throw new Error('DB_URL is not defined in .env');
-        }
+const sequelize = new Sequelize("node_fulltask", "root", "Phongga088@", {
+  host: "localhost",
+  dialect: "mysql",
+  logging: false,
+});
 
-        await mongoose.connect(dbUrl, {});
+// Initialize models
+const User = UserModel(sequelize);
 
-        console.log('✅ MongoDB connected successfully');
-    } catch (error: any) {
-        console.error('❌ MongoDB connection failed:', error.message);
-        process.exit(1);
-    }
+const connectDB = async () => {
+  try {
+    // Create database if not exists
+    await sequelizeInit.query("CREATE DATABASE IF NOT EXISTS node_fulltask");
+    console.log("Database 'node_fulltask' exists or created.");
+
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+
+    // Sync models
+    await sequelize.sync({ alter: true });
+    console.log("Database models synced.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
 };
 
 export default connectDB;
+export { sequelize, User };
