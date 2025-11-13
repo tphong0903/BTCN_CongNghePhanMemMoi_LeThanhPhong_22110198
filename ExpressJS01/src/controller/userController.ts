@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import { 
     createUserService, 
     loginService, 
-    getUserService 
+    getUserService,
+    forgotPasswordService,
+    resetPasswordService 
 } from '../services/UserService';
 
 const createUser = async (req: Request, res: Response) => {
@@ -39,8 +41,6 @@ const getUser = async (req: Request, res: Response) => {
 
 const getAccount = async (req: Request, res: Response) => {
     try {
-        // Giả sử middleware 'auth' đã xử lý và gắn 'req.user'
-        // Bạn cần định nghĩa lại kiểu 'Request' của Express để 'user' được công nhận
         // @ts-ignore
         return res.status(200).json(req.user);
     } catch (error: any) {
@@ -49,9 +49,39 @@ const getAccount = async (req: Request, res: Response) => {
     }
 }
 
+const handleForgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ EC: -1, EM: "Email là bắt buộc" });
+        }
+        const data = await forgotPasswordService(email);
+        return res.status(200).json(data);
+    } catch (error: any) {
+        console.error("Error in handleForgotPassword: ", error.message);
+        return res.status(500).json({ EC: -1, EM: "Error from server" });
+    }
+}
+
+const handleResetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) {
+            return res.status(400).json({ EC: -1, EM: "Token và mật khẩu mới là bắt buộc" });
+        }
+        const data = await resetPasswordService(token, newPassword);
+        return res.status(200).json(data);
+    } catch (error: any) {
+        console.error("Error in handleResetPassword: ", error.message);
+        return res.status(500).json({ EC: -1, EM: "Error from server" });
+    }
+}
+
 export {
     createUser,
     handleLogin,
     getUser,
-    getAccount
+    getAccount,
+    handleForgotPassword,
+    handleResetPassword
 }

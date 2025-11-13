@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
+import crypto from 'crypto';
 import db from '../models/index';
 dotenv.config();
 
@@ -139,8 +140,104 @@ const getUserService = async (): Promise<IUser[] | null> => {
   }
 }
 
+const forgotPasswordService = async (email: string): Promise<{ EC: number; EM?: string; token?: string }> => {
+  try {
+    const user = await db.User.findOne({
+      where: { email: email },
+      raw: true,
+    });
+
+    if (!user) {
+      return {
+        EC: 1,
+        EM: "Email không tồn tại trong hệ thống"
+      };
+    }
+
+    // Generate reset token (32 bytes = 64 hex characters)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // Hash the token for storage
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    
+    // Set expiry time (10 minutes)
+    const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    await db.User.update(
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordTokenExpiry: resetTokenExpiry
+      },
+      { where: { email: email } }
+    );
+
+    return {
+      EC: 0,
+      token: resetToken
+    };
+  } catch (error: any) {
+    console.log(error);
+    return {
+      EC: -1,
+      EM: "Error from server"
+    };
+  }
+};
+
+const resetPasswordService = async (token: string, newPassword: string): Promise<{ EC: number; EM?: string }> => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await db.User.findOne({
+      where: { resetPasswordToken: hashedToken },
+      raw: true,
+    });
+
+    if (!user) {
+      return {
+        EC: 1,
+        EM: "Token không hợp lệ hoặc đã hết hạn"
+      };
+    }
+
+    // Check if token has expired
+    if (user.resetPasswordTokenExpiry && new Date(user.resetPasswordTokenExpiry) < new Date()) {
+      return {
+        EC: 2,
+        EM: "Token đã hết hạn"
+      };
+    }
+
+    // Hash the new password
+    const hashPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password and clear reset token
+    await db.User.update(
+      {
+        password: hashPassword,
+        resetPasswordToken: null,
+        resetPasswordTokenExpiry: null
+      },
+      { where: { id: user.id } }
+    );
+
+    return {
+      EC: 0,
+      EM: "Mật khẩu đã được cập nhật thành công"
+    };
+  } catch (error: any) {
+    console.log(error);
+    return {
+      EC: -1,
+      EM: "Error from server"
+    };
+  }
+};
+
 export {
   createUserService,
   loginService,
-  getUserService
+  getUserService,
+  forgotPasswordService,
+  resetPasswordService
 }

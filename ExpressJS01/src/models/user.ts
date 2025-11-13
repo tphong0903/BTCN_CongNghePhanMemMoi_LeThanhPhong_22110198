@@ -12,6 +12,8 @@ interface UserAttributes {
   image?: string;
   roleId?: string;
   positionId?: string;
+  resetPasswordToken?: string;
+  resetPasswordTokenExpiry?: Date;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -31,6 +33,8 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public image?: string;
   public roleId?: string;
   public positionId?: string;
+  public resetPasswordToken?: string;
+  public resetPasswordTokenExpiry?: Date;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -55,7 +59,9 @@ export default (sequelize: Sequelize): typeof User => {
     gender: DataTypes.BOOLEAN,
     image: DataTypes.STRING,
     roleId: DataTypes.STRING,
-    positionId: DataTypes.STRING
+    positionId: DataTypes.STRING,
+    resetPasswordToken: DataTypes.STRING,
+    resetPasswordTokenExpiry: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'User',

@@ -3,7 +3,9 @@ import {
     createUser, 
     handleLogin, 
     getUser, 
-    getAccount 
+    getAccount,
+    handleForgotPassword,
+    handleResetPassword 
 } from '../controller/userController';
 
 import auth from '../middleware/auth';
@@ -18,6 +20,10 @@ routerAPI.get("/", (req: Request, res: Response) => {
 routerAPI.post("/register", createUser);
 
 routerAPI.post("/login", handleLogin);
+
+routerAPI.post("/forgot-password", handleForgotPassword);
+
+routerAPI.post("/reset-password", handleResetPassword);
 
 routerAPI.get("/user", auth, getUser);
 
