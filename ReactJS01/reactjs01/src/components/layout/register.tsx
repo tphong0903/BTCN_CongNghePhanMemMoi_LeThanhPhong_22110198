@@ -66,6 +66,7 @@ const RegisterPage: React.FC = () => {
                   required: true,
                   message: "Please input your email!",
                 },
+                { type: "email", message: "Email không hợp lệ" },
               ]}
             >
               <Input />
@@ -79,6 +80,7 @@ const RegisterPage: React.FC = () => {
                   required: true,
                   message: "Please input your password!",
                 },
+                { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự" },
               ]}
             >
               <Input.Password />

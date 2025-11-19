@@ -37,7 +37,6 @@ interface IUser {
   updatedAt?: Date;
 }
 
-
 const createUserApi = (name: string, email: string, password: string) => {
   const URL_API = "/v1/api/register";
   const data: CreateUserPayload = {
@@ -68,4 +67,15 @@ const forgotPasswordApi = (email: string) => {
   return axios.post<any>(URL_API, { email });
 };
 
-export { createUserApi, loginApi, getUserApi, forgotPasswordApi };
+const getProductApi = (page: number, limit: number) => {
+  const URL_API = "/v1/api/products";
+  const res: any = axios.get<any>(URL_API, { params: { page, limit } });
+  return res;
+};
+export {
+  createUserApi,
+  loginApi,
+  getUserApi,
+  forgotPasswordApi,
+  getProductApi,
+};

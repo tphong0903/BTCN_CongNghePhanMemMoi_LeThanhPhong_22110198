@@ -1,8 +1,8 @@
-import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
-import crypto from 'crypto';
-import db from '../models/index';
+import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import jwt, { SignOptions } from "jsonwebtoken";
+import crypto from "crypto";
+import db from "../models/index";
 dotenv.config();
 
 const saltRounds: number = 10;
@@ -32,7 +32,11 @@ interface LoginResponse {
   };
 }
 
-const createUserService = async (name: string, email: string, password: string): Promise<IUser | null> => {
+const createUserService = async (
+  name: string,
+  email: string,
+  password: string
+): Promise<IUser | null> => {
   try {
     const user = await db.User.findOne({ where: { email } });
     if (user) {
@@ -45,21 +49,23 @@ const createUserService = async (name: string, email: string, password: string):
     const newUser = await db.User.create({
       email: email,
       password: hashPassword,
-      firstName: name, 
-      roleId: "User" 
+      firstName: name,
+      roleId: "User",
     });
-    
+
     const result: IUser = newUser.get({ plain: true });
     delete result.password;
     return result;
-
   } catch (error: any) {
     console.log(error);
     return null;
   }
-}
+};
 
-const loginService = async (email: string, password: string): Promise<LoginResponse | null> => {
+const loginService = async (
+  email: string,
+  password: string
+): Promise<LoginResponse | null> => {
   try {
     const user = await db.User.findOne({
       where: { email: email },
@@ -73,14 +79,17 @@ const loginService = async (email: string, password: string): Promise<LoginRespo
         const payload = {
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
+          lastName: user.lastName,
+          role: "user",
         };
 
         const jwtSecret = process.env.JWT_SECRET as string;
         const jwtExpireEnv = process.env.JWT_EXPIRE;
 
         if (!jwtSecret || !jwtExpireEnv) {
-          console.error("Lỗi: JWT_SECRET hoặc JWT_EXPIRE chưa được định nghĩa trong file .env");
+          console.error(
+            "Lỗi: JWT_SECRET hoặc JWT_EXPIRE chưa được định nghĩa trong file .env"
+          );
           return null;
         }
 
@@ -89,13 +98,9 @@ const loginService = async (email: string, password: string): Promise<LoginRespo
           : Number(jwtExpireEnv);
 
         const options: SignOptions = {
-          expiresIn: expiresInValue as any
+          expiresIn: expiresInValue as any,
         };
-        const access_token = jwt.sign(
-          payload,
-          jwtSecret,
-          options
-        );
+        const access_token = jwt.sign(payload, jwtSecret, options);
 
         return {
           EC: 0,
@@ -103,32 +108,32 @@ const loginService = async (email: string, password: string): Promise<LoginRespo
           user: {
             email: user.email,
             firstName: user.firstName,
-            lastName: user.lastName
-          }
+            lastName: user.lastName,
+          },
         };
       } else {
         return {
           EC: 2,
-          EM: "Email/Password không hợp lệ"
+          EM: "Email/Password không hợp lệ",
         };
       }
     } else {
       return {
         EC: 1,
-        EM: "Email/Password không hợp lệ"
+        EM: "Email/Password không hợp lệ",
       };
     }
   } catch (error: any) {
     console.log(error);
     return null;
   }
-}
+};
 
 const getUserService = async (): Promise<IUser[] | null> => {
   try {
     const result: IUser[] = await db.User.findAll({
       attributes: {
-        exclude: ['password']
+        exclude: ["password"],
       },
       raw: true,
     });
@@ -138,9 +143,11 @@ const getUserService = async (): Promise<IUser[] | null> => {
     console.log(error);
     return null;
   }
-}
+};
 
-const forgotPasswordService = async (email: string): Promise<{ EC: number; EM?: string; token?: string }> => {
+const forgotPasswordService = async (
+  email: string
+): Promise<{ EC: number; EM?: string; token?: string }> => {
   try {
     const user = await db.User.findOne({
       where: { email: email },
@@ -150,43 +157,49 @@ const forgotPasswordService = async (email: string): Promise<{ EC: number; EM?: 
     if (!user) {
       return {
         EC: 1,
-        EM: "Email không tồn tại trong hệ thống"
+        EM: "Email không tồn tại trong hệ thống",
       };
     }
 
     // Generate reset token (32 bytes = 64 hex characters)
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
     // Hash the token for storage
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
     // Set expiry time (10 minutes)
     const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     await db.User.update(
       {
         resetPasswordToken: hashedToken,
-        resetPasswordTokenExpiry: resetTokenExpiry
+        resetPasswordTokenExpiry: resetTokenExpiry,
       },
       { where: { email: email } }
     );
 
     return {
       EC: 0,
-      token: resetToken
+      token: resetToken,
     };
   } catch (error: any) {
     console.log(error);
     return {
       EC: -1,
-      EM: "Error from server"
+      EM: "Error from server",
     };
   }
 };
 
-const resetPasswordService = async (token: string, newPassword: string): Promise<{ EC: number; EM?: string }> => {
+const resetPasswordService = async (
+  token: string,
+  newPassword: string
+): Promise<{ EC: number; EM?: string }> => {
   try {
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await db.User.findOne({
       where: { resetPasswordToken: hashedToken },
@@ -196,15 +209,18 @@ const resetPasswordService = async (token: string, newPassword: string): Promise
     if (!user) {
       return {
         EC: 1,
-        EM: "Token không hợp lệ hoặc đã hết hạn"
+        EM: "Token không hợp lệ hoặc đã hết hạn",
       };
     }
 
     // Check if token has expired
-    if (user.resetPasswordTokenExpiry && new Date(user.resetPasswordTokenExpiry) < new Date()) {
+    if (
+      user.resetPasswordTokenExpiry &&
+      new Date(user.resetPasswordTokenExpiry) < new Date()
+    ) {
       return {
         EC: 2,
-        EM: "Token đã hết hạn"
+        EM: "Token đã hết hạn",
       };
     }
 
@@ -216,20 +232,20 @@ const resetPasswordService = async (token: string, newPassword: string): Promise
       {
         password: hashPassword,
         resetPasswordToken: null,
-        resetPasswordTokenExpiry: null
+        resetPasswordTokenExpiry: null,
       },
       { where: { id: user.id } }
     );
 
     return {
       EC: 0,
-      EM: "Mật khẩu đã được cập nhật thành công"
+      EM: "Mật khẩu đã được cập nhật thành công",
     };
   } catch (error: any) {
     console.log(error);
     return {
       EC: -1,
-      EM: "Error from server"
+      EM: "Error from server",
     };
   }
 };
@@ -239,5 +255,5 @@ export {
   loginService,
   getUserService,
   forgotPasswordService,
-  resetPasswordService
-}
+  resetPasswordService,
+};

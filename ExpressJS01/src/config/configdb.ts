@@ -1,28 +1,40 @@
-
 import { Sequelize } from "sequelize";
+import dotenv from "dotenv";
 import UserModel from "../models/user";
+import ProductModel from "../models/product";
 
-// Create connection without specifying database first
-const sequelizeInit = new Sequelize("mysql", "root", "Phongga088@", {
-  host: "localhost",
-  dialect: "mysql",
+dotenv.config();
+
+// Lấy config từ env
+const DB_NAME = process.env.DB_NAME || "node_fulltask";
+const DB_USER = process.env.DB_USER || "root";
+const DB_PASSWORD = process.env.DB_PASSWORD || "";
+const DB_HOST = process.env.DB_HOST || "localhost";
+const DB_DIALECT = (process.env.DB_DIALECT as any) || "mysql";
+
+// Kết nối để tạo database nếu chưa có
+const sequelizeInit = new Sequelize("mysql", DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  dialect: DB_DIALECT,
   logging: false,
 });
 
-const sequelize = new Sequelize("node_fulltask", "root", "Phongga088@", {
-  host: "localhost",
-  dialect: "mysql",
+// Kết nối database chính
+const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  dialect: DB_DIALECT,
   logging: false,
 });
 
 // Initialize models
 const User = UserModel(sequelize);
+const Product = ProductModel(sequelize);
 
 const connectDB = async () => {
   try {
-    // Create database if not exists
-    await sequelizeInit.query("CREATE DATABASE IF NOT EXISTS node_fulltask");
-    console.log("Database 'node_fulltask' exists or created.");
+    // Tạo database nếu chưa tồn tại
+    await sequelizeInit.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
+    console.log(`Database '${DB_NAME}' exists or created.`);
 
     await sequelize.authenticate();
     console.log("Connection has been established successfully.");

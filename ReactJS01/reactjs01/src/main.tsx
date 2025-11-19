@@ -10,6 +10,7 @@ import HomePage from "./pages/home";
 import LoginPage from "./components/layout/login";
 import ForgotPasswordPage from "./components/layout/forgot-password";
 import { AuthWrapper } from "./components/context/auth.context";
+import ProductPage from "./components/layout/products";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: "user",
         element: <UserPage />,
+      },
+      {
+        path: "product",
+        element: <ProductPage />,
       },
     ],
   },

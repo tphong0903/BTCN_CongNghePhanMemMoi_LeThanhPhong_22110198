@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
     try {
       const { email, password } = values;
 
-      const res = await loginApi(email, password) as LoginResponse;
+      const res = (await loginApi(email, password)) as LoginResponse;
 
       if (res && res.EC === 0) {
         localStorage.setItem("access_token", res.access_token || "");
@@ -32,7 +32,9 @@ const LoginPage: React.FC = () => {
           isAuthenticated: true,
           user: {
             email: res.user?.email ?? "",
-            name: `${res.user?.firstName || ""} ${res.user?.lastName || ""}`.trim(),
+            name: `${res.user?.firstName || ""} ${
+              res.user?.lastName || ""
+            }`.trim(),
           },
         });
         navigate("/");
@@ -74,6 +76,7 @@ const LoginPage: React.FC = () => {
               rules={[
                 {
                   required: true,
+                  pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: "Please input your email!",
                 },
               ]}
@@ -89,6 +92,7 @@ const LoginPage: React.FC = () => {
                   required: true,
                   message: "Please input your password!",
                 },
+                { min: 6, message: "Mật khẩu tối thiểu 6 ký tự!" },
               ]}
             >
               <Input.Password />
