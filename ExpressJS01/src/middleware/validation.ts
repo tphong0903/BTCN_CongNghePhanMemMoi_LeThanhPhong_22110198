@@ -6,6 +6,11 @@ export const getProductsValidation = celebrate({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
     q: Joi.string().optional(),
+    search: Joi.string().allow("").optional(),
+    brandName: Joi.string().allow("").optional(),
+    categoryName: Joi.string().allow("").optional(),
+    sortBy: Joi.string().optional(),
+    sortOrder: Joi.string().valid("ASC", "DESC", "asc", "desc").optional(),
   }),
 });
 

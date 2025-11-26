@@ -67,9 +67,19 @@ const forgotPasswordApi = (email: string) => {
   return axios.post<any>(URL_API, { email });
 };
 
-const getProductApi = (page: number, limit: number) => {
+const getProductApi = (
+  page: number,
+  limit: number,
+  search?: string,
+  brandName?: string,
+  categoryName?: string,
+  sortBy?: string,
+  sortOrder?: string
+) => {
   const URL_API = "/v1/api/products";
-  const res: any = axios.get<any>(URL_API, { params: { page, limit } });
+  const res: any = axios.get<any>(URL_API, {
+    params: { page, limit, search, brandName, categoryName, sortBy, sortOrder },
+  });
   return res;
 };
 export {

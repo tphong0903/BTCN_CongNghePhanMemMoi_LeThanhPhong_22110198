@@ -1,13 +1,36 @@
 import db from "../models";
-
-export const getProductsService = async (page: number, limit: number) => {
+import { Op } from "sequelize";
+export const getProductsService = async (
+  page: number,
+  limit: number,
+  search: string,
+  brandName: string,
+  categoryName: string,
+  sortBy: string = "createdAt",
+  sortOrder: string = "DESC"
+) => {
   try {
     const offset = (page - 1) * limit;
 
+    const where: any = {};
+
+    if (search) {
+      where[Op.or] = [{ productName: { [Op.like]: `%${search}%` } }];
+    }
+
+    if (brandName) {
+      where.brand = { [Op.like]: `%${brandName}%` };
+    }
+
+    if (categoryName) {
+      where.category = { [Op.like]: `%${categoryName}%` };
+    }
+
     const { rows, count } = await db.Product.findAndCountAll({
+      where,
       offset,
       limit,
-      order: [["createdAt", "DESC"]],
+      order: [[sortBy, sortOrder]],
     });
 
     const totalPages = Math.ceil(count / limit);
@@ -18,7 +41,7 @@ export const getProductsService = async (page: number, limit: number) => {
       data: rows,
       total: count,
       currentPage: page,
-      totalPages: totalPages,
+      totalPages,
       isLast: page >= totalPages,
     };
   } catch (error: any) {
