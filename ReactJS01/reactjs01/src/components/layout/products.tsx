@@ -11,7 +11,7 @@ import {
 } from "antd";
 import type { ColumnsType, TableProps } from "antd/es/table";
 import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
-import { getProductApi } from "../../util/api"; // Đảm bảo import đúng
+import { getProductApi } from "../../util/api";
 
 interface IProduct {
   id?: number;
@@ -20,23 +20,24 @@ interface IProduct {
   category?: string;
   address?: string;
   price?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
 }
 
 const ProductPage: React.FC = () => {
   const [dataSource, setDataSource] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Pagination State
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
 
-  // Filter & Sort State
+  // Filters
   const [searchText, setSearchText] = useState("");
   const [filterBrand, setFilterBrand] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+
+  // Sort
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("DESC");
 
@@ -72,24 +73,33 @@ const ProductPage: React.FC = () => {
     }
   };
 
+  // Tự động fetch khi thay đổi pagination, sort, search, filter
   useEffect(() => {
     fetchProduct();
-  }, [currentPage, pageSize, sortBy, sortOrder]);
+  }, [
+    currentPage,
+    pageSize,
+    sortBy,
+    sortOrder,
+    searchText,
+    filterBrand,
+    filterCategory,
+  ]);
 
   const handleTableChange: TableProps<IProduct>["onChange"] = (
     pagination,
     filters,
     sorter: any
   ) => {
-    if (pagination.current && pagination.current !== currentPage) {
-      setCurrentPage(pagination.current);
-    }
-    if (pagination.pageSize && pagination.pageSize !== pageSize) {
-      setPageSize(pagination.pageSize);
+    // Pagination
+    if (pagination.current !== currentPage) setCurrentPage(pagination.current!);
+    if (pagination.pageSize !== pageSize) {
+      setPageSize(pagination.pageSize!);
       setCurrentPage(1);
     }
 
-    if (sorter && sorter.field) {
+    // Sort
+    if (sorter?.field) {
       const order =
         sorter.order === "ascend"
           ? "ASC"
@@ -98,7 +108,7 @@ const ProductPage: React.FC = () => {
           : undefined;
 
       if (order) {
-        setSortBy(sorter.field as string);
+        setSortBy(sorter.field);
         setSortOrder(order);
       } else {
         setSortBy("createdAt");
@@ -119,46 +129,39 @@ const ProductPage: React.FC = () => {
     setSortBy("createdAt");
     setSortOrder("DESC");
     setCurrentPage(1);
-    setTimeout(() => fetchProduct(), 100);
   };
 
   const columns: ColumnsType<IProduct> = [
     {
       title: "ID",
       dataIndex: "id",
-      key: "id",
-      width: 70,
       sorter: true,
+      width: 70,
     },
     {
       title: "Product Name",
       dataIndex: "productName",
-      key: "productName",
       sorter: true,
     },
     {
       title: "Brand",
       dataIndex: "brand",
-      key: "brand",
       sorter: true,
     },
     {
       title: "Category",
       dataIndex: "category",
-      key: "category",
       sorter: true,
     },
     {
       title: "Price",
       dataIndex: "price",
-      key: "price",
       sorter: true,
       render: (price) => `${price}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
     },
     {
       title: "Created At",
       dataIndex: "createdAt",
-      key: "createdAt",
       sorter: true,
       render: (date) => (date ? new Date(date).toLocaleDateString() : ""),
     },
@@ -170,13 +173,14 @@ const ProductPage: React.FC = () => {
         <Row gutter={[16, 16]}>
           <Col span={6}>
             <Input
-              placeholder="Search by name..."
+              placeholder="Search by Name..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onPressEnter={handleSearch}
               prefix={<SearchOutlined />}
             />
           </Col>
+
           <Col span={5}>
             <Input
               placeholder="Filter by Brand"
@@ -185,6 +189,7 @@ const ProductPage: React.FC = () => {
               onPressEnter={handleSearch}
             />
           </Col>
+
           <Col span={5}>
             <Input
               placeholder="Filter by Category"
@@ -193,16 +198,18 @@ const ProductPage: React.FC = () => {
               onPressEnter={handleSearch}
             />
           </Col>
+
           <Col span={8} style={{ textAlign: "right" }}>
             <Space>
               <Button
                 type="primary"
-                onClick={handleSearch}
                 icon={<SearchOutlined />}
+                onClick={handleSearch}
               >
                 Search
               </Button>
-              <Button onClick={handleReset} icon={<ReloadOutlined />}>
+
+              <Button icon={<ReloadOutlined />} onClick={handleReset}>
                 Reset
               </Button>
             </Space>
@@ -219,7 +226,7 @@ const ProductPage: React.FC = () => {
         onChange={handleTableChange}
         pagination={{
           current: currentPage,
-          pageSize: pageSize,
+          pageSize,
           total: total,
           showSizeChanger: true,
           showTotal: (total, range) =>

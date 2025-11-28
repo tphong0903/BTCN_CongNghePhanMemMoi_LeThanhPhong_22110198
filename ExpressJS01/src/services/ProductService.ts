@@ -1,5 +1,7 @@
 import db from "../models";
 import { Op } from "sequelize";
+import { meiliClient } from "../utils/meilisearch";
+
 export const getProductsService = async (
   page: number,
   limit: number,
@@ -12,34 +14,48 @@ export const getProductsService = async (
   try {
     const offset = (page - 1) * limit;
 
-    const where: any = {};
+    const meiliQuery: any = {
+      q: search || "",
+      limit,
+      offset,
+      filter: [],
+    };
 
-    if (search) {
-      where[Op.or] = [{ productName: { [Op.like]: `%${search}%` } }];
-    }
+    if (brandName) meiliQuery.filter.push(`brand LIKE "${brandName}"`);
+    if (categoryName) meiliQuery.filter.push(`category LIKE "${categoryName}"`);
 
-    if (brandName) {
-      where.brand = { [Op.like]: `%${brandName}%` };
-    }
+    const searchResult = await meiliClient
+      .index("products")
+      .search(search || "", meiliQuery);
 
-    if (categoryName) {
-      where.category = { [Op.like]: `%${categoryName}%` };
+    const ids = searchResult.hits.map((h: any) => h.id);
+
+    if (ids.length === 0) {
+      return {
+        EC: 0,
+        EM: "SUCCESS",
+        data: [],
+        total: 0,
+        currentPage: page,
+        totalPages: 0,
+        isLast: true,
+      };
     }
 
     const { rows, count } = await db.Product.findAndCountAll({
-      where,
-      offset,
-      limit,
+      where: { id: ids },
       order: [[sortBy, sortOrder]],
     });
 
-    const totalPages = Math.ceil(count / limit);
+    // const countProduct = await db.Product.countProduct();
+    const totalHits = searchResult.estimatedTotalHits ?? 0;
+    const totalPages = Math.ceil(totalHits / limit);
 
     return {
       EC: 0,
       EM: "SUCCESS",
       data: rows,
-      total: count,
+      total: totalHits,
       currentPage: page,
       totalPages,
       isLast: page >= totalPages,
@@ -60,7 +76,18 @@ export const getProductsService = async (
 export const createProductService = async (data: any) => {
   try {
     const product = await db.Product.create(data);
-
+    await meiliClient.index("products").addDocuments([
+      {
+        id: product.id,
+        productName: product.productName,
+        brand: product.brand,
+        category: product.category,
+        address: product.address,
+        price: product.price,
+        image: product.image,
+        createdAt: product.createdAt,
+      },
+    ]);
     return {
       EC: 0,
       EM: "Product created",
@@ -73,4 +100,28 @@ export const createProductService = async (data: any) => {
       data: null,
     };
   }
+};
+
+export const syncProductService = async () => {
+  const products = await db.Product.findAll({ raw: true });
+
+  await meiliClient.index("products").updateSettings({
+    filterableAttributes: ["brand", "category", "address", "price"],
+    sortableAttributes: ["createdAt", "price"],
+  });
+
+  const mappedProducts = products.map((p: any) => ({
+    id: p.id,
+    productName: p.productName,
+    brand: p.brand,
+    category: p.category,
+    address: p.address,
+    price: p.price,
+    image: p.image,
+    createdAt: p.createdAt,
+  }));
+
+  await meiliClient.index("products").addDocuments(mappedProducts);
+
+  return "success";
 };

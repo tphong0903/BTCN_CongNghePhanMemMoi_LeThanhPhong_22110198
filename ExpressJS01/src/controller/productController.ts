@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   getProductsService,
   createProductService,
+  syncProductService,
 } from "../services/ProductService";
 
 export const getProducts = async (req: Request, res: Response) => {
@@ -27,5 +28,10 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   const response = await createProductService(req.body);
+  return res.status(200).json(response);
+};
+
+export const syncProduct = async (req: Request, res: Response) => {
+  const response = await syncProductService();
   return res.status(200).json(response);
 };

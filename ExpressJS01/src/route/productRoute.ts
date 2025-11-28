@@ -1,6 +1,10 @@
 // routes/productRoute.ts
 import express from "express";
-import { getProducts, createProduct } from "../controller/productController";
+import {
+  getProducts,
+  createProduct,
+  syncProduct,
+} from "../controller/productController";
 import { globalLimiter, authLimiter } from "../middleware/rateLimiter";
 import {
   getProductsValidation,
@@ -17,6 +21,8 @@ productRoute.get(
   getProductsValidation,
   getProducts
 );
+
+productRoute.get("/products/sync", globalLimiter, syncProduct);
 
 productRoute.post(
   "/products",
