@@ -1,0 +1,14 @@
+{
+  "name": "cart-monorepo",
+  "private": true,
+  "workspaces": [
+    "cart-ui",
+    "demo-app",
+    "cart-api"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "build:lib": "npm run build --workspace=@local/cart-ui",
+    "dev:app": "npm run dev --workspace=demo-app"
+  }
+}
