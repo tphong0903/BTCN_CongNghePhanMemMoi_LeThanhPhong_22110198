@@ -82,6 +82,35 @@ const getProductApi = (
   });
   return res;
 };
+
+export const createProductApi = (data: any) => {
+  return axios.post("/v1/api/products", data);
+};
+
+export const getProductDetailApi = (id: number) => {
+  return axios.get(`/v1/api/products/${id}`);
+};
+
+export const getSimilarProductsApi = (id: number) => {
+  return axios.get(`/v1/api/products/${id}/similar`);
+};
+
+export const getProductCommentsApi = (productId: number) => {
+  return axios.get(`/v1/api/comments?productId=${productId}`);
+};
+
+export const toggleFavoriteApi = (productId: number) => {
+  return axios.post(`/v1/api/favorites/toggle`, { productId });
+};
+
+export const getMyFavoritesApi = () => {
+  return axios.get(`/v1/api/favorites`);
+};
+
+export const createCommentApi = (data: any) => {
+  return axios.post(`/v1/api/comments`, data);
+};
+
 export {
   createUserApi,
   loginApi,

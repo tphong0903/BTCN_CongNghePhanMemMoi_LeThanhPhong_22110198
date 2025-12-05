@@ -20,6 +20,8 @@ export const createProductValidation = celebrate({
     brand: Joi.string().required().min(5),
     category: Joi.string().required().min(5),
     price: Joi.number().positive().required(),
+    address: Joi.string().allow("").optional(),
+    image: Joi.string().allow("").optional(),
   }),
 });
 

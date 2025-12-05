@@ -48,6 +48,7 @@ export default (sequelize: Sequelize): typeof Product => {
       brand: DataTypes.STRING,
       category: DataTypes.STRING,
       address: DataTypes.STRING,
+      image: DataTypes.STRING,
       price: DataTypes.DECIMAL(10, 2),
     },
     {

@@ -2,6 +2,8 @@ import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import UserModel from "../models/user";
 import ProductModel from "../models/product";
+import CommentModel from "../models/comment";
+import favorite from "../models/favorite";
 
 dotenv.config();
 
@@ -29,6 +31,8 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
 // Initialize models
 const User = UserModel(sequelize);
 const Product = ProductModel(sequelize);
+const Comment = CommentModel(sequelize);
+const Favorite = favorite(sequelize);
 
 const connectDB = async () => {
   try {

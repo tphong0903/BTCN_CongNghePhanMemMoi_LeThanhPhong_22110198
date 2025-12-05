@@ -11,6 +11,7 @@ import LoginPage from "./components/layout/login";
 import ForgotPasswordPage from "./components/layout/forgot-password";
 import { AuthWrapper } from "./components/context/auth.context";
 import ProductPage from "./components/layout/products";
+import ProductDetail from "./components/layout/ProductDetail";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: "product",
         element: <ProductPage />,
+      },
+      {
+        path: "/product/:id",
+        element: <ProductDetail />,
       },
     ],
   },

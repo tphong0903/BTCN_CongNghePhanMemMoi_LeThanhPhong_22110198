@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { CartContainer, Button } from "@local/cart-ui";
 
 import {
   GET_DATA,
@@ -10,19 +9,17 @@ import {
   TOGGLE_SELECT,
   CHECKOUT,
 } from "./graphql";
+import { Button, CartContainer } from "tphong-cart-ui";
 
 function App() {
-  // 1. STATE QUẢN LÝ USER ID
-  const [activeUserId, setActiveUserId] = useState("user_123"); // ID đang dùng để lấy dữ liệu
-  const [inputUserId, setInputUserId] = useState("user_123"); // ID đang nhập trong ô input
+  const [activeUserId, setActiveUserId] = useState("user_123");
+  const [inputUserId, setInputUserId] = useState("user_123");
 
-  // 2. QUERY DỮ LIỆU (Phụ thuộc vào activeUserId)
   const { data, loading, error, refetch } = useQuery(GET_DATA, {
     variables: { userId: activeUserId },
     fetchPolicy: "network-only",
   });
 
-  // Khai báo Mutation
   const [addToCart] = useMutation(ADD_TO_CART, {
     onCompleted: () => refetch(),
   });
@@ -50,14 +47,12 @@ function App() {
     }));
   }, [data]);
 
-  // 3. CÁC HÀM XỬ LÝ (Sử dụng activeUserId thay vì hằng số)
   const handleSwitchUser = () => {
     if (inputUserId.trim() === "") {
       alert("Vui lòng nhập User ID");
       return;
     }
     setActiveUserId(inputUserId);
-    // Khi đổi user, query sẽ tự động chạy lại nhờ biến activeUserId thay đổi
   };
 
   const handleAddToCart = (product: any) => {
@@ -85,10 +80,10 @@ function App() {
       const result = await checkout({ variables: { userId: activeUserId } });
       if (result.data?.checkout?.success) {
         alert(
-          `✅ ${result.data.checkout.message}\nMã đơn: ${result.data.checkout.orderId}`
+          `${result.data.checkout.message}\nMã đơn: ${result.data.checkout.orderId}`
         );
       } else {
-        alert(`❌ ${result.data?.checkout?.message}`);
+        alert(` ${result.data?.checkout?.message}`);
       }
     } catch (e) {
       alert("Lỗi thanh toán");
@@ -99,13 +94,11 @@ function App() {
     <div className="min-h-screen bg-gray-50 p-8 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2">
-          {/* HEADER & USER SWITCHER */}
           <header className="mb-8">
             <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight">
               Cửa Hàng Công Nghệ
             </h1>
 
-            {/* KHU VỰC ĐỔI USER ID */}
             <div className="mt-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200 inline-block w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mô phỏng Khách hàng (User ID):
@@ -127,20 +120,18 @@ function App() {
             </div>
           </header>
 
-          {/* LOADING / ERROR STATE */}
           {loading && (
             <div className="p-10 text-center text-blue-500 font-medium">
-              ⏳ Đang tải dữ liệu cho {activeUserId}...
+              Đang tải dữ liệu cho {activeUserId}...
             </div>
           )}
 
           {error && (
             <div className="p-10 text-center text-red-500 bg-red-50 rounded-lg border border-red-200">
-              ❌ Lỗi kết nối Server: {error.message}
+              Lỗi kết nối Server: {error.message}
             </div>
           )}
 
-          {/* LIST SẢN PHẨM */}
           {!loading && !error && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {data?.products.map((p: any) => (
@@ -177,7 +168,6 @@ function App() {
           )}
         </div>
 
-        {/* CỘT PHẢI: GIỎ HÀNG */}
         <div className="lg:col-span-1">
           <div className="sticky top-8">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">

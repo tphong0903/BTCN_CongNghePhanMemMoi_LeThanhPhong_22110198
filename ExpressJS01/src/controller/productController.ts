@@ -3,6 +3,8 @@ import {
   getProductsService,
   createProductService,
   syncProductService,
+  getSimilarProductsService,
+  getProductByIdService,
 } from "../services/ProductService";
 
 export const getProducts = async (req: Request, res: Response) => {
@@ -34,4 +36,49 @@ export const createProduct = async (req: Request, res: Response) => {
 export const syncProduct = async (req: Request, res: Response) => {
   const response = await syncProductService();
   return res.status(200).json(response);
+};
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({
+        EC: 1,
+        EM: "Invalid Product ID",
+        data: null,
+      });
+    }
+
+    const response = await getProductByIdService(Number(id));
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      EC: -1,
+      EM: "Internal Server Error",
+      data: null,
+    });
+  }
+};
+
+export const getSimilarProducts = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({
+        EC: 1,
+        EM: "Invalid Product ID",
+        data: [],
+      });
+    }
+
+    const response = await getSimilarProductsService(Number(id));
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({
+      EC: -1,
+      EM: "Internal Server Error",
+      data: [],
+    });
+  }
 };

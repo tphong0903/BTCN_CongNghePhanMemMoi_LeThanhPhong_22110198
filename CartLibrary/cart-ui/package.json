@@ -1,7 +1,6 @@
 {
-  "name": "@local/cart-ui",
+  "name": "tphong-cart-ui",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.esm.js",

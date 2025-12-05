@@ -1,12 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 
-// 1. Định nghĩa Types
 export type Product = {
   id: string;
   sku?: string;
   name: string;
   price: number;
-  image?: string; // Thêm field image cho khớp với frontend
+  image?: string;
 };
 
 export type CartItem = {
@@ -22,7 +21,6 @@ export type Cart = {
   items: CartItem[];
 };
 
-// 2. Dữ liệu mẫu
 export const products: Product[] = [
   {
     id: "1",
@@ -56,7 +54,6 @@ export const products: Product[] = [
 
 export const carts: Record<string, Cart> = {};
 
-// 3. Helper Function
 export function getOrCreateCart(userId: string): Cart {
   if (!carts[userId]) {
     carts[userId] = { id: uuidv4(), userId, items: [] };

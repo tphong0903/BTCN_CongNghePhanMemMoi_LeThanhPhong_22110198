@@ -1,240 +1,153 @@
 import React, { useEffect, useState } from "react";
 import {
-  notification,
-  Table,
-  Input,
-  Button,
-  Space,
-  Row,
-  Col,
   Card,
+  Col,
+  Row,
+  Pagination,
+  Input,
+  Select,
+  Rate,
+  Spin,
 } from "antd";
-import type { ColumnsType, TableProps } from "antd/es/table";
-import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { HeartOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import { getProductApi } from "../../util/api";
 
-interface IProduct {
-  id?: number;
-  productName?: string;
-  brand?: string;
-  category?: string;
-  address?: string;
-  price?: number;
-  createdAt?: string;
-}
+const { Meta } = Card;
+const { Search } = Input;
 
-const ProductPage: React.FC = () => {
-  const [dataSource, setDataSource] = useState<IProduct[]>([]);
+const ProductStore: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [products, setProducts] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
 
-  // Filters
-  const [searchText, setSearchText] = useState("");
-  const [filterBrand, setFilterBrand] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  // Filter States
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8); 
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("createdAt");
 
-  // Sort
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("DESC");
-
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const res = await getProductApi(
-        currentPage,
-        pageSize,
-        searchText,
-        filterBrand,
-        filterCategory,
-        sortBy,
-        sortOrder
-      );
-
-      if (res && res.EC === 0) {
-        setDataSource(res.data || []);
-        setTotal(res.total || 0);
-      } else {
-        notification.error({
-          message: "ERROR",
-          description: res?.EM ?? "Failed to load product",
-        });
-      }
-    } catch (error: any) {
-      notification.error({
-        message: "ERROR",
-        description: error?.message ?? "Failed to load product",
-      });
-    } finally {
-      setLoading(false);
+  const fetchProducts = async () => {
+    setLoading(true);
+    const res = await getProductApi(
+      page,
+      pageSize,
+      search,
+      "",
+      "",
+      sort,
+      "DESC"
+    );
+    if (res && res.EC === 0) {
+      setProducts(res.data);
+      setTotal(res.total);
     }
+    setLoading(false);
   };
 
-  // Tự động fetch khi thay đổi pagination, sort, search, filter
   useEffect(() => {
-    fetchProduct();
-  }, [
-    currentPage,
-    pageSize,
-    sortBy,
-    sortOrder,
-    searchText,
-    filterBrand,
-    filterCategory,
-  ]);
-
-  const handleTableChange: TableProps<IProduct>["onChange"] = (
-    pagination,
-    filters,
-    sorter: any
-  ) => {
-    // Pagination
-    if (pagination.current !== currentPage) setCurrentPage(pagination.current!);
-    if (pagination.pageSize !== pageSize) {
-      setPageSize(pagination.pageSize!);
-      setCurrentPage(1);
-    }
-
-    // Sort
-    if (sorter?.field) {
-      const order =
-        sorter.order === "ascend"
-          ? "ASC"
-          : sorter.order === "descend"
-          ? "DESC"
-          : undefined;
-
-      if (order) {
-        setSortBy(sorter.field);
-        setSortOrder(order);
-      } else {
-        setSortBy("createdAt");
-        setSortOrder("DESC");
-      }
-    }
-  };
-
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchProduct();
-  };
-
-  const handleReset = () => {
-    setSearchText("");
-    setFilterBrand("");
-    setFilterCategory("");
-    setSortBy("createdAt");
-    setSortOrder("DESC");
-    setCurrentPage(1);
-  };
-
-  const columns: ColumnsType<IProduct> = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      sorter: true,
-      width: 70,
-    },
-    {
-      title: "Product Name",
-      dataIndex: "productName",
-      sorter: true,
-    },
-    {
-      title: "Brand",
-      dataIndex: "brand",
-      sorter: true,
-    },
-    {
-      title: "Category",
-      dataIndex: "category",
-      sorter: true,
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      sorter: true,
-      render: (price) => `${price}`.replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      sorter: true,
-      render: (date) => (date ? new Date(date).toLocaleDateString() : ""),
-    },
-  ];
+    fetchProducts();
+  }, [page, search, sort]);
 
   return (
-    <div style={{ padding: 30 }}>
-      <Card style={{ marginBottom: 20 }}>
-        <Row gutter={[16, 16]}>
-          <Col span={6}>
-            <Input
-              placeholder="Search by Name..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              onPressEnter={handleSearch}
-              prefix={<SearchOutlined />}
-            />
-          </Col>
-
-          <Col span={5}>
-            <Input
-              placeholder="Filter by Brand"
-              value={filterBrand}
-              onChange={(e) => setFilterBrand(e.target.value)}
-              onPressEnter={handleSearch}
-            />
-          </Col>
-
-          <Col span={5}>
-            <Input
-              placeholder="Filter by Category"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              onPressEnter={handleSearch}
-            />
-          </Col>
-
-          <Col span={8} style={{ textAlign: "right" }}>
-            <Space>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
-
-              <Button icon={<ReloadOutlined />} onClick={handleReset}>
-                Reset
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
-
-      <Table
-        bordered
-        loading={loading}
-        dataSource={dataSource}
-        columns={columns}
-        rowKey="id"
-        onChange={handleTableChange}
-        pagination={{
-          current: currentPage,
-          pageSize,
-          total: total,
-          showSizeChanger: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} items`,
+    <div
+      style={{
+        padding: "20px 50px",
+        background: "#f5f5f5",
+        minHeight: "100vh",
+      }}
+    >
+      {/* --- Filter Bar --- */}
+      <div
+        style={{
+          marginBottom: 20,
+          display: "flex",
+          justifyContent: "space-between",
         }}
-      />
+      >
+        <Search
+          placeholder="Tìm kiếm sản phẩm..."
+          onSearch={(val) => setSearch(val)}
+          style={{ width: 300 }}
+          enterButton
+        />
+        <Select
+          defaultValue="createdAt"
+          style={{ width: 200 }}
+          onChange={(val) => setSort(val)}
+          options={[
+            { value: "createdAt", label: "Mới nhất" },
+            { value: "price", label: "Giá" },
+            { value: "sold", label: "Bán chạy nhất" },
+          ]}
+        />
+      </div>
+
+      {/* --- Product Grid --- */}
+      <Spin spinning={loading}>
+        <Row gutter={[16, 16]}>
+          {products.map((item) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
+              <Card
+                hoverable
+                cover={
+                  <img
+                    alt={item.productName}
+                    src={item.image}
+                    style={{ height: 200, objectFit: "cover" }}
+                  />
+                }
+                actions={[
+                  <HeartOutlined key="wishlist" />,
+                  <ShoppingCartOutlined
+                    key="cart"
+                    onClick={() => console.log("Add to cart", item)}
+                  />,
+                ]}
+                onClick={() => navigate(`/product/${item.id}`)} // Chuyển sang trang chi tiết
+              >
+                <Meta
+                  title={item.productName}
+                  description={
+                    <div>
+                      <div
+                        style={{
+                          color: "#d0021b",
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        {item.price?.toLocaleString()} đ
+                      </div>
+                      <div style={{ fontSize: 12, marginTop: 5 }}>
+                        <Rate
+                          disabled
+                          defaultValue={4.5}
+                          style={{ fontSize: 12 }}
+                        />{" "}
+                        | Đã bán: {item.sold || 0}
+                      </div>
+                    </div>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Spin>
+
+      {/* --- Pagination --- */}
+      <div style={{ marginTop: 30, textAlign: "center" }}>
+        <Pagination
+          current={page}
+          total={total}
+          pageSize={pageSize}
+          onChange={(p) => setPage(p)}
+        />
+      </div>
     </div>
   );
 };
 
-export default ProductPage;
+export default ProductStore;

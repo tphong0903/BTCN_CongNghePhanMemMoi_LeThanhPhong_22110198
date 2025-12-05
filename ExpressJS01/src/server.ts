@@ -9,6 +9,8 @@ import { errors } from "celebrate";
 import { errorHandler } from "./middleware/exeptionHandle";
 import product from "./models/product";
 import productRoute from "./route/productRoute";
+import commentRoute from "./route/commentRoute";
+import favoriteRoute from "./route/favoriteRoute";
 dotenv.config();
 
 const app: Express = express();
@@ -21,7 +23,8 @@ viewEngine(app);
 initWebRoutes(app);
 app.use("/v1/api", apiRoutes);
 app.use("/v1/api", productRoute);
-
+app.use("/v1/api", commentRoute);
+app.use("/v1/api", favoriteRoute);
 const port = parseInt(process.env.PORT ?? "8888", 10);
 
 const startServer = async () => {

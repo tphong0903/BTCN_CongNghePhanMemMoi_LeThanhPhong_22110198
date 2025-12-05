@@ -4,6 +4,8 @@ import {
   getProducts,
   createProduct,
   syncProduct,
+  getProductById,
+  getSimilarProducts,
 } from "../controller/productController";
 import { globalLimiter, authLimiter } from "../middleware/rateLimiter";
 import {
@@ -23,6 +25,10 @@ productRoute.get(
 );
 
 productRoute.get("/products/sync", globalLimiter, syncProduct);
+
+productRoute.get("/products/:id", globalLimiter, getProductById);
+
+productRoute.get("/products/:id/similar", globalLimiter, getSimilarProducts);
 
 productRoute.post(
   "/products",

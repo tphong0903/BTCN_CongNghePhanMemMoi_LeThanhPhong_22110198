@@ -19,10 +19,11 @@ export const getProductsService = async (
       limit,
       offset,
       filter: [],
+      matchingStrategy: "all",
     };
 
-    if (brandName) meiliQuery.filter.push(`brand LIKE "${brandName}"`);
-    if (categoryName) meiliQuery.filter.push(`category LIKE "${categoryName}"`);
+    if (brandName) meiliQuery.filter.push(`brand = "${brandName}"`);
+    if (categoryName) meiliQuery.filter.push(`category = "${categoryName}"`);
 
     const searchResult = await meiliClient
       .index("products")
@@ -108,6 +109,14 @@ export const syncProductService = async () => {
   await meiliClient.index("products").updateSettings({
     filterableAttributes: ["brand", "category", "address", "price"],
     sortableAttributes: ["createdAt", "price"],
+    typoTolerance: {
+      enabled: true,
+      disableOnAttributes: [],
+      minWordSizeForTypos: {
+        oneTypo: 3,
+        twoTypos: 4,
+      },
+    },
   });
 
   const mappedProducts = products.map((p: any) => ({
@@ -124,4 +133,67 @@ export const syncProductService = async () => {
   await meiliClient.index("products").addDocuments(mappedProducts);
 
   return "success";
+};
+
+export const getProductByIdService = async (id: number) => {
+  try {
+    const product = await db.Product.findByPk(id);
+
+    if (product) {
+      return {
+        EC: 0,
+        EM: "Get product detail success",
+        data: product,
+      };
+    } else {
+      return {
+        EC: 1,
+        EM: "Product not found",
+        data: null,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    return {
+      EC: -1,
+      EM: "Something went wrong in service",
+      data: null,
+    };
+  }
+};
+
+export const getSimilarProductsService = async (id: number) => {
+  try {
+    const currentProduct = await db.Product.findByPk(id);
+
+    if (!currentProduct) {
+      return {
+        EC: 1,
+        EM: "Product not found",
+        data: [],
+      };
+    }
+
+    const similarProducts = await db.Product.findAll({
+      where: {
+        category: currentProduct.category,
+        id: { [Op.ne]: id },
+      },
+      limit: 4,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      EC: 0,
+      EM: "Get similar products success",
+      data: similarProducts,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      EC: -1,
+      EM: "Something went wrong in service",
+      data: [],
+    };
+  }
 };
